@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lottery Zone</title>
+
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #111111; --card-bg-color: rgba(30, 30, 30, 0.85); --text-primary: #f5f5f5;
+            --text-secondary: #aaaaaa; --accent-primary: #FFA500;
+            --accent-gradient: linear-gradient(135deg, #FFB347, #FF6347);
+            --border-color: rgba(255, 255, 255, 0.1); --shadow-color: rgba(0, 0, 0, 0.3);
+            --success-color: #4CAF50; --error-color: #f44336;
+        }
+        body.light-mode {
+            --bg-color: #f0f2f5; --card-bg-color: rgba(255, 255, 255, 0.9); --text-primary: #111111;
+            --text-secondary: #666666; --border-color: rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif; background-color: var(--bg-color);
+            color: var(--text-primary); overflow-x: hidden;
+            background-size: cover; background-position: center center; background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out;
+        }
+        
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px;
+            background-color: var(--card-bg-color); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
+        }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .profile-pic { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent-primary); object-fit: cover; }
+        .user-info .name { font-weight: 600; }
+        .user-info .id { font-size: 12px; color: var(--text-secondary); }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .theme-switcher { width: 28px; height: 28px; cursor: pointer; color: var(--text-secondary); }
+        .theme-switcher .icon { display: none; }
+        body.light-mode .theme-switcher .moon-icon { display: block; }
+        body:not(.light-mode) .theme-switcher .sun-icon { display: block; }
+
+        .app-container { max-width: 500px; margin: 0 auto; padding: 15px; }
+        .card { 
+            background-color: var(--card-bg-color); border-radius: 15px; padding: 20px;
+            margin-bottom: 20px; backdrop-filter: blur(10px); border: 1px solid var(--border-color);
+        }
+        .btn { border: none; border-radius: 10px; background: var(--accent-gradient); color: white; font-size: 16px; font-weight: 600; cursor: pointer; padding: 10px 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s; }
+        .btn:disabled { background: #555; cursor: not-allowed; opacity: 0.7; }
+
+        .notice-card { text-align: center; color: var(--text-secondary); font-size: 14px; }
+        .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .wallet-card { background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; }
+        .wallet-card .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+        .wallet-card .value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        .coin-icon { width: 18px; height: 18px; vertical-align: middle; margin-left: 5px; }
+
+        /* Lottery Card Styles */
+        .lottery-card {
+            border: 1px solid var(--border-color); border-radius: 15px;
+            overflow: hidden; margin-bottom: 20px; background: var(--card-bg-color);
+        }
+        .lottery-header {
+            display: flex; align-items: center; gap: 15px;
+            padding: 15px; background: rgba(0,0,0,0.2);
+        }
+        .lottery-icon { font-size: 32px; color: var(--accent-primary); }
+        .lottery-name {
+            font-size: 20px; font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .lottery-body { padding: 20px; }
+        .lottery-details { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .detail-item { text-align: center; }
+        .detail-item .label { font-size: 12px; color: var(--text-secondary); }
+        .detail-item .value { font-weight: 600; font-size: 16px; }
+
+        .prize-list { list-style: none; margin-bottom: 25px; }
+        .prize-item {
+            display: flex; align-items: center;
+            background: rgba(0,0,0,0.15); border-radius: 8px;
+            padding: 10px 15px; margin-bottom: 8px;
+        }
+        .prize-item .rank-icon { font-size: 20px; margin-right: 15px; }
+        .prize-item .prize-info { flex-grow: 1; }
+        .prize-item .reward { font-weight: 600; }
+        .prize-item .gift { font-size: 12px; color: var(--text-secondary); }
+        .prize-item:nth-child(1) .rank-icon { color: #FFD700; } /* Gold */
+        .prize-item:nth-child(2) .rank-icon { color: #C0C0C0; } /* Silver */
+        .prize-item:nth-child(3) .rank-icon { color: #CD7F32; } /* Bronze */
+
+        .purchase-btn { width: 100%; font-size: 18px; padding: 12px; }
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1001; display: none; align-items: center; justify-content: center; padding: 15px; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background-color: var(--card-bg-color); padding: 25px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; text-align: center; }
+        .modal-close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 2rem; color: var(--text-secondary); cursor: pointer; }
+        .modal-content h3 { color: var(--accent-primary); margin-bottom: 15px; }
+        .modal-content p { margin-bottom: 20px; line-height: 1.6; }
+        #confirm-purchase-btn { background: var(--success-color); }
+
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="user-profile">
+            <img id="profile-pic" src="https://i.ibb.co/L0xJ182/placeholder.png" alt="Profile" class="profile-pic">
+            <div class="user-info">
+                <div id="user-name" class="name">Guest User</div>
+                <div id="user-id" class="id">ID: Not Found</div>
+            </div>
+        </div>
+        <div class="header-right"><div id="theme-switcher" class="theme-switcher"><svg class="sun-icon icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 010 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.591a.75.75 0 011.06 0zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.894 17.894a.75.75 0 01-1.06 0l-1.59-1.591a.75.75 0 111.06-1.06l1.591 1.59a.75.75 0 010 1.061zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM6.106 17.894a.75.75 0 010-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.591a.75.75 0 01-1.06 0zM3.75 12a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM6.106 6.106a.75.75 0 011.06 0l1.59 1.591a.75.75 0 11-1.06 1.06L6.106 7.167a.75.75 0 010-1.06z"></path></svg><svg class="moon-icon icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-3.833 2.067-7.17 5.168-8.972a.75.75 0 01.818.162z" clip-rule="evenodd"></path></svg></div></div>
+    </header>
+    
+    <div class="app-container">
+        <div class="card notice-card">
+            <p id="lottery-description">Welcome to the Lottery Zone! Participate in our exciting lotteries for a chance to win big. Good luck!</p>
+        </div>
+        
+        <div class="wallet-grid">
+            <div class="wallet-card">
+                <div class="label">🏆 Lottery Winnings</div>
+                <div id="lottery-winnings-balance" class="value">0</div>
+            </div>
+            <div class="wallet-card">
+                <div class="label">🎟️ Tickets Purchased</div>
+                <div id="total-lotteries-purchased" class="value">0</div>
+            </div>
+        </div>
+        
+        <div id="lottery-list">
+            <!-- Lottery cards will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Purchase Confirmation Modal -->
+    <div id="purchase-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h3>Confirm Purchase</h3>
+            <p id="purchase-modal-text">Are you sure you want to buy this ticket?</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                 <button id="cancel-purchase-btn" class="btn" style="background: var(--error-color);">Cancel</button>
+                 <button id="confirm-purchase-btn" class="btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+        import { getDatabase, ref, onValue, get, update, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-database.js";
+
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCrWhN-Zo4KUEWwbSOqpy4pHRB8Lr8M6kQ",
+            authDomain: "earn-view-cf5b6.firebaseapp.com",
+            databaseURL: "https://earn-view-cf5b6-default-rtdb.firebaseio.com",
+            projectId: "earn-view-cf5b6",
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // --- Global State ---
+        let tg = null, currentUserId = null, appSettings = {}, currentUserData = {};
+        const COIN_ICON_URL = "https://i.ibb.co/Qjjn0jt4/1000105515.jpg";
+
+        // --- DOM Elements ---
+        const dom = {
+            themeSwitcher: document.getElementById('theme-switcher'),
+            lotteryList: document.getElementById('lottery-list'),
+            purchaseModal: document.getElementById('purchase-modal'),
+            purchaseModalText: document.getElementById('purchase-modal-text'),
+            confirmPurchaseBtn: document.getElementById('confirm-purchase-btn'),
+            cancelPurchaseBtn: document.getElementById('cancel-purchase-btn'),
+            modalCloseBtn: document.querySelector('#purchase-modal .modal-close-btn'),
+        };
+
+        // --- Initialization ---
+        function init() {
+            try { tg = window.Telegram.WebApp; tg.expand(); } catch (e) { console.warn("Running in guest mode."); }
+            
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                initializeUser(tg.initDataUnsafe.user);
+            } else {
+                initializeGuest();
+            }
+            
+            fetchAppSettings();
+            fetchLotteries();
+            attachEventListeners();
+            applyTheme(localStorage.getItem('theme') || 'dark');
+        }
+        
+        // --- Data Fetching ---
+        async function fetchAppSettings() {
+            const settingsSnap = await get(ref(db, 'appSettings/lotteryPage'));
+            if (!settingsSnap.exists()) return;
+            appSettings = settingsSnap.val();
+
+            if (appSettings.description) {
+                document.getElementById('lottery-description').textContent = appSettings.description;
+            }
+            if (appSettings.backgroundImageUrl) {
+                document.body.style.backgroundImage = `url('${appSettings.backgroundImageUrl}')`;
+            }
+        }
+        
+        async function fetchLotteries() {
+            const lotteriesSnap = await get(ref(db, 'lotteries'));
+            dom.lotteryList.innerHTML = ''; // Clear existing list
+            if (lotteriesSnap.exists()) {
+                const lotteries = lotteriesSnap.val();
+                for (const lotteryId in lotteries) {
+                    if (lotteries[lotteryId].status === 'active') {
+                        renderLotteryCard(lotteries[lotteryId], lotteryId);
+                    }
+                }
+            } else {
+                dom.lotteryList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No active lotteries at the moment. Check back soon!</p>';
+            }
+        }
+
+        // --- User Handling ---
+        function initializeUser(tgUser) {
+            currentUserId = tgUser.id.toString();
+            document.getElementById('user-name').textContent = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
+            document.getElementById('user-id').textContent = `ID: ${currentUserId}`;
+
+            // Listen for user data changes
+            onValue(ref(db, `users/${currentUserId}`), (snap) => {
+                if(snap.exists()) {
+                    currentUserData = snap.val();
+                    updateUI(currentUserData);
+                } else {
+                    // Create new user with deposit and lottery wallets
+                    const newUser = {
+                        name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim(),
+                        registeredAt: serverTimestamp(),
+                        wallets: { main: 0, deposit: 0, lotteryWinnings: 0 }
+                    };
+                    update(ref(db, `users/${currentUserId}`), newUser);
+                }
+            });
+        }
+
+        function initializeGuest() {
+            document.getElementById('user-name').textContent = "Guest User";
+            dom.lotteryList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Please open in Telegram to participate.</p>';
+        }
+
+        // --- UI Rendering ---
+        function updateUI(userData) {
+            const wallets = userData.wallets || {};
+            document.getElementById('profile-pic').src = userData.profilePic || 'https://i.ibb.co/L0xJ182/placeholder.png';
+            document.getElementById('lottery-winnings-balance').textContent = (wallets.lotteryWinnings || 0).toLocaleString();
+            document.getElementById('total-lotteries-purchased').textContent = (userData.lotteriesPurchased || 0).toLocaleString();
+        }
+
+        function renderLotteryCard(lottery, lotteryId) {
+            const card = document.createElement('div');
+            card.className = 'lottery-card';
+            
+            const participants = lottery.participants ? Object.keys(lottery.participants).length : 0;
+            const isPurchased = lottery.participants && lottery.participants[currentUserId];
+            const isFull = participants >= lottery.maxParticipants;
+            
+            let prizesHTML = '';
+            if (lottery.prizes) {
+                lottery.prizes.slice(0, 3).forEach((prize, index) => {
+                    const rankIcons = ['fa-trophy', 'fa-medal', 'fa-award'];
+                    prizesHTML += `
+                        <li class="prize-item">
+                            <i class="fas ${rankIcons[index]} rank-icon"></i>
+                            <div class="prize-info">
+                                <div class="reward">${prize.reward.toLocaleString()} <img src="${COIN_ICON_URL}" class="coin-icon"></div>
+                                ${prize.gift ? `<div class="gift">${prize.gift}</div>` : ''}
+                            </div>
+                        </li>`;
+                });
+            }
+
+            card.innerHTML = `
+                <div class="lottery-header">
+                    <i class="fas fa-ticket-alt lottery-icon"></i>
+                    <span class="lottery-name">${lottery.name}</span>
+                </div>
+                <div class="lottery-body">
+                    <div class="lottery-details">
+                        <div class="detail-item">
+                            <div class="label">Ticket Price</div>
+                            <div class="value">${lottery.price.toLocaleString()} <img src="${COIN_ICON_URL}" class="coin-icon"></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="label">Participants</div>
+                            <div class="value">${participants} / ${lottery.maxParticipants}</div>
+                        </div>
+                    </div>
+                    <ul class="prize-list">${prizesHTML}</ul>
+                    <button class="btn purchase-btn" 
+                        data-lottery-id="${lotteryId}" 
+                        data-price="${lottery.price}"
+                        data-name="${lottery.name}"
+                        data-payment-source="${lottery.paymentSource || 'main'}"
+                        ${isPurchased || isFull ? 'disabled' : ''}>
+                        ${isPurchased ? 'Already Purchased' : (isFull ? 'Lottery Full' : 'Purchase Now')}
+                    </button>
+                </div>`;
+            
+            dom.lotteryList.appendChild(card);
+        }
+
+        // --- Event Handling ---
+        function attachEventListeners() {
+            dom.themeSwitcher.addEventListener('click', () => applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light'));
+            
+            dom.lotteryList.addEventListener('click', e => {
+                if (e.target.classList.contains('purchase-btn')) {
+                    handlePurchaseClick(e.target.dataset);
+                }
+            });
+
+            dom.modalCloseBtn.addEventListener('click', closePurchaseModal);
+            dom.cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
+        }
+
+        function handlePurchaseClick(dataset) {
+            if (!currentUserId) {
+                alert("Please open in Telegram to purchase.");
+                return;
+            }
+            const { lotteryId, price, name, paymentSource } = dataset;
+            const sourceText = paymentSource === 'deposit' ? 'Deposit Balance' : 'Main Balance';
+            
+            dom.purchaseModalText.innerHTML = `Are you sure you want to buy a ticket for <strong>${name}</strong> for <strong>${price} ${paymentSource}</strong>? <br><small>This amount will be deducted from your ${sourceText}.</small>`;
+            dom.confirmPurchaseBtn.onclick = () => confirmPurchase(lotteryId, parseInt(price), paymentSource);
+            dom.purchaseModal.classList.add('show');
+        }
+        
+        function closePurchaseModal() {
+            dom.purchaseModal.classList.remove('show');
+        }
+
+        async function confirmPurchase(lotteryId, price, paymentSource) {
+            const userWallet = currentUserData.wallets || {};
+            const balance = userWallet[paymentSource] || 0;
+
+            if (balance < price) {
+                alert(`Insufficient ${paymentSource === 'deposit' ? 'Deposit' : 'Main'} Balance.`);
+                closePurchaseModal();
+                return;
+            }
+
+            dom.confirmPurchaseBtn.disabled = true;
+            dom.confirmPurchaseBtn.textContent = 'Processing...';
+
+            try {
+                const updates = {};
+                updates[`/users/${currentUserId}/wallets/${paymentSource}`] = balance - price;
+                updates[`/users/${currentUserId}/lotteriesPurchased`] = increment(1);
+                updates[`/lotteries/${lotteryId}/participants/${currentUserId}`] = serverTimestamp();
+
+                await update(ref(db), updates);
+                
+                alert("Purchase successful! Good luck!");
+                fetchLotteries(); // Refresh the list to update button state
+            } catch (error) {
+                console.error("Purchase failed: ", error);
+                alert("An error occurred. Please try again.");
+            } finally {
+                closePurchaseModal();
+                dom.confirmPurchaseBtn.disabled = false;
+                dom.confirmPurchaseBtn.textContent = 'Confirm';
+            }
+        }
+
+        // --- Utility Functions ---
+        function applyTheme(theme) { 
+            document.body.classList.toggle('light-mode', theme === 'light'); 
+            localStorage.setItem('theme', theme); 
+        }
+        
+        // --- Start the App ---
+        init();
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Lottery Zone</title>
+    <title>My Wallet</title>
 
     <!-- Google Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,102 +16,94 @@
 
     <style>
         :root {
-            --bg-color: #111111; --card-bg-color: rgba(30, 30, 30, 0.85); --text-primary: #f5f5f5;
+            --bg-color: #111111; --card-bg-color: #1e1e1e; --text-primary: #f5f5f5;
             --text-secondary: #aaaaaa; --accent-primary: #FFA500;
             --accent-gradient: linear-gradient(135deg, #FFB347, #FF6347);
             --border-color: rgba(255, 255, 255, 0.1); --shadow-color: rgba(0, 0, 0, 0.3);
             --success-color: #4CAF50; --error-color: #f44336;
         }
         body.light-mode {
-            --bg-color: #f0f2f5; --card-bg-color: rgba(255, 255, 255, 0.9); --text-primary: #111111;
+            --bg-color: #f0f2f5; --card-bg-color: #ffffff; --text-primary: #111111;
             --text-secondary: #666666; --border-color: rgba(0, 0, 0, 0.1);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Poppins', sans-serif; background-color: var(--bg-color);
             color: var(--text-primary); overflow-x: hidden;
-            background-size: cover; background-position: center center; background-attachment: fixed;
-            transition: background-image 0.5s ease-in-out;
         }
         
         .app-header {
             display: flex; justify-content: space-between; align-items: center; padding: 15px;
-            background-color: var(--card-bg-color); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
+            background-color: var(--card-bg-color); border-bottom: 1px solid var(--border-color);
         }
         .user-profile { display: flex; align-items: center; gap: 10px; }
         .profile-pic { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent-primary); object-fit: cover; }
         .user-info .name { font-weight: 600; }
-        .user-info .id { font-size: 12px; color: var(--text-secondary); }
         .header-right { display: flex; align-items: center; gap: 15px; }
-        .theme-switcher { width: 28px; height: 28px; cursor: pointer; color: var(--text-secondary); }
+        .theme-switcher { width: 28px; height: 28px; cursor: pointer; color: var(--text-secondary); font-size: 22px; }
         .theme-switcher .icon { display: none; }
-        body.light-mode .theme-switcher .moon-icon { display: block; }
-        body:not(.light-mode) .theme-switcher .sun-icon { display: block; }
-
-        .app-container { max-width: 500px; margin: 0 auto; padding: 15px; }
-        .card { 
-            background-color: var(--card-bg-color); border-radius: 15px; padding: 20px;
-            margin-bottom: 20px; backdrop-filter: blur(10px); border: 1px solid var(--border-color);
+        body.light-mode .theme-switcher .fa-moon { display: none; }
+        body:not(.light-mode) .theme-switcher .fa-sun { display: none; }
+        
+        .app-container { max-width: 500px; margin: 0 auto; padding: 20px 15px 15px; }
+        
+        .balance-display {
+            background: var(--card-bg-color); border-radius: 20px; padding: 25px;
+            text-align: center; margin-bottom: 20px; position: relative;
+            box-shadow: 0 4px 20px var(--shadow-color); border: 1px solid var(--border-color);
         }
-        .btn { border: none; border-radius: 10px; background: var(--accent-gradient); color: white; font-size: 16px; font-weight: 600; cursor: pointer; padding: 10px 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s; }
-        .btn:disabled { background: #555; cursor: not-allowed; opacity: 0.7; }
+        .settings-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; color: var(--text-secondary); cursor: pointer; }
+        .balance-display .coin-icon { width: 40px; height: 40px; margin-bottom: 10px; }
+        .balance-display .main-balance-value { font-size: 36px; font-weight: 700; line-height: 1.2; }
+        .balance-display .currency-value { font-size: 16px; color: var(--text-secondary); }
+        .balance-display .exchange-rate { font-size: 12px; color: var(--accent-primary); margin-top: 5px; }
 
-        .notice-card { text-align: center; color: var(--text-secondary); font-size: 14px; }
-        .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .wallet-card { background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; }
-        .wallet-card .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-        .wallet-card .value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
-        .coin-icon { width: 18px; height: 18px; vertical-align: middle; margin-left: 5px; }
-
-        /* Lottery Card Styles */
-        .lottery-card {
-            border: 1px solid var(--border-color); border-radius: 15px;
-            overflow: hidden; margin-bottom: 20px; background: var(--card-bg-color);
+        .action-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+        .action-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            background: var(--card-bg-color); border-radius: 15px; padding: 15px 10px;
+            color: var(--text-primary); text-decoration: none; font-size: 12px; font-weight: 500;
+            border: 1px solid var(--border-color); cursor: pointer;
         }
-        .lottery-header {
-            display: flex; align-items: center; gap: 15px;
-            padding: 15px; background: rgba(0,0,0,0.2);
+        .action-btn i { font-size: 20px; color: var(--accent-primary); }
+        
+        .wallet-list-title { margin-bottom: 10px; font-weight: 600; padding-left: 5px; }
+        .wallet-list { list-style: none; }
+        .wallet-item {
+            display: flex; align-items: center; background: var(--card-bg-color);
+            border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid var(--border-color);
         }
-        .lottery-icon { font-size: 32px; color: var(--accent-primary); }
-        .lottery-name {
-            font-size: 20px; font-weight: 700;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .lottery-body { padding: 20px; }
-        .lottery-details { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .detail-item { text-align: center; }
-        .detail-item .label { font-size: 12px; color: var(--text-secondary); }
-        .detail-item .value { font-weight: 600; font-size: 16px; }
-
-        .prize-list { list-style: none; margin-bottom: 25px; }
-        .prize-item {
-            display: flex; align-items: center;
-            background: rgba(0,0,0,0.15); border-radius: 8px;
-            padding: 10px 15px; margin-bottom: 8px;
-        }
-        .prize-item .rank-icon { font-size: 20px; margin-right: 15px; }
-        .prize-item .prize-info { flex-grow: 1; }
-        .prize-item .reward { font-weight: 600; }
-        .prize-item .gift { font-size: 12px; color: var(--text-secondary); }
-        .prize-item:nth-child(1) .rank-icon { color: #FFD700; } /* Gold */
-        .prize-item:nth-child(2) .rank-icon { color: #C0C0C0; } /* Silver */
-        .prize-item:nth-child(3) .rank-icon { color: #CD7F32; } /* Bronze */
-
-        .purchase-btn { width: 100%; font-size: 18px; padding: 12px; }
+        .wallet-item-info { flex-grow: 1; }
+        .wallet-item-name { font-weight: 500; }
+        .wallet-item-balances { text-align: right; }
+        .wallet-item-coins { font-weight: 600; font-size: 16px; }
+        .wallet-item-currency { font-size: 12px; color: var(--text-secondary); }
 
         /* Modal Styles */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1001; display: none; align-items: center; justify-content: center; padding: 15px; }
-        .modal-overlay.show { display: flex; }
-        .modal-content { background-color: var(--card-bg-color); padding: 25px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; text-align: center; }
-        .modal-close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 2rem; color: var(--text-secondary); cursor: pointer; }
-        .modal-content h3 { color: var(--accent-primary); margin-bottom: 15px; }
-        .modal-content p { margin-bottom: 20px; line-height: 1.6; }
-        #confirm-purchase-btn { background: var(--success-color); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1001; display: none; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background-color: var(--card-bg-color); padding: 25px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { color: var(--accent-primary); }
+        .modal-close-btn { background: none; border: none; font-size: 1.8rem; color: var(--text-secondary); cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: var(--text-primary); font-size: 16px; }
+        .btn { border: none; border-radius: 10px; background: var(--accent-gradient); color: white; font-size: 16px; font-weight: 600; cursor: pointer; padding: 12px 20px; width: 100%; }
+        .btn:disabled { background: #555; cursor: not-allowed; opacity: 0.7; }
 
+        .country-list button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; background: none; border: none; color: var(--text-primary); border-bottom: 1px solid var(--border-color); cursor: pointer; font-size: 16px; }
+        .country-list button:hover { background-color: rgba(255,255,255,0.05); }
+        .country-list button:last-child { border-bottom: none; }
+
+        .recipient-finder { display: flex; gap: 10px; }
+        .recipient-finder input { flex-grow: 1; }
+        .recipient-finder button { width: auto; padding: 12px 15px; }
+        #recipient-info { margin-top: 15px; background: var(--bg-color); padding: 10px; border-radius: 8px; display: none; align-items: center; gap: 10px; }
+        #recipient-info img { width: 40px; height: 40px; border-radius: 50%; }
+        .history-item { padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        .history-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -120,51 +112,78 @@
             <img id="profile-pic" src="https://i.ibb.co/L0xJ182/placeholder.png" alt="Profile" class="profile-pic">
             <div class="user-info">
                 <div id="user-name" class="name">Guest User</div>
-                <div id="user-id" class="id">ID: Not Found</div>
             </div>
         </div>
-        <div class="header-right"><div id="theme-switcher" class="theme-switcher"><svg class="sun-icon icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 010 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.591a.75.75 0 011.06 0zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.894 17.894a.75.75 0 01-1.06 0l-1.59-1.591a.75.75 0 111.06-1.06l1.591 1.59a.75.75 0 010 1.061zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM6.106 17.894a.75.75 0 010-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.591a.75.75 0 01-1.06 0zM3.75 12a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM6.106 6.106a.75.75 0 011.06 0l1.59 1.591a.75.75 0 11-1.06 1.06L6.106 7.167a.75.75 0 010-1.06z"></path></svg><svg class="moon-icon icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-3.833 2.067-7.17 5.168-8.972a.75.75 0 01.818.162z" clip-rule="evenodd"></path></svg></div></div>
+        <div class="header-right">
+            <div id="theme-switcher" class="theme-switcher">
+                <i class="fas fa-moon icon"></i>
+                <i class="fas fa-sun icon"></i>
+            </div>
+        </div>
     </header>
     
     <div class="app-container">
-        <div class="card notice-card">
-            <p id="lottery-description">Welcome to the Lottery Zone! Participate in our exciting lotteries for a chance to win big. Good luck!</p>
+        <div class="balance-display">
+            <i class="fas fa-cog settings-btn" id="settings-btn"></i>
+            <img src="https://i.ibb.co/Qjjn0jt4/1000105515.jpg" alt="Coin" class="coin-icon">
+            <div id="main-balance-value" class="main-balance-value">0</div>
+            <div id="currency-value" class="currency-value">≈ 0.00 BDT</div>
+            <div id="exchange-rate" class="exchange-rate">1 Coin = 1.00 BDT</div>
+        </div>
+
+        <div class="action-buttons">
+            <div class="action-btn" id="transfer-btn"><i class="fas fa-exchange-alt"></i><span>Transfer</span></div>
+            <div class="action-btn" id="deposit-btn"><i class="fas fa-wallet"></i><span>Deposit</span></div>
+            <div class="action-btn" id="withdraw-btn"><i class="fas fa-paper-plane"></i><span>P2P Send</span></div>
+            <div class="action-btn" id="history-btn"><i class="fas fa-history"></i><span>History</span></div>
         </div>
         
-        <div class="wallet-grid">
-            <div class="wallet-card">
-                <div class="label">🏆 Lottery Winnings</div>
-                <div id="lottery-winnings-balance" class="value">0</div>
-            </div>
-            <div class="wallet-card">
-                <div class="label">🎟️ Tickets Purchased</div>
-                <div id="total-lotteries-purchased" class="value">0</div>
-            </div>
+        <h3 class="wallet-list-title">My Wallets</h3>
+        <ul class="wallet-list" id="wallet-list"></ul>
+    </div>
+
+    <!-- Modals -->
+    <div id="transfer-to-main-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Transfer to Main Balance</h3><button class="modal-close-btn">&times;</button></div>
+            <form id="transfer-to-main-form">
+                <div class="form-group"><label for="source-wallet">From Wallet</label><select id="source-wallet" required></select></div>
+                <div class="form-group"><label for="transfer-amount">Amount</label><input type="number" id="transfer-amount" placeholder="Enter amount" required></div>
+                <button type="submit" class="btn">Transfer Now</button>
+            </form>
         </div>
-        
-        <div id="lottery-list">
-            <!-- Lottery cards will be dynamically inserted here -->
+    </div>
+    
+    <div id="p2p-transfer-modal" class="modal-overlay">
+         <div class="modal-content">
+            <div class="modal-header"><h3>Send to User</h3><button class="modal-close-btn">&times;</button></div>
+            <form id="p2p-transfer-form">
+                <div class="form-group"><label for="recipient-id">Recipient's Telegram ID</label><div class="recipient-finder"><input type="text" id="recipient-id" required><button type="button" id="find-user-btn" class="btn">Find</button></div></div>
+                <div id="recipient-info"><img id="recipient-pic" src=""><span id="recipient-name"></span></div>
+                <div class="form-group" id="p2p-amount-group" style="display:none;"><label for="p2p-amount">Amount to Send</label><input type="number" id="p2p-amount" required></div>
+                <button type="submit" id="p2p-submit-btn" class="btn" disabled>Send Coins</button>
+            </form>
         </div>
     </div>
 
-    <!-- Purchase Confirmation Modal -->
-    <div id="purchase-modal" class="modal-overlay">
+    <div id="history-modal" class="modal-overlay">
         <div class="modal-content">
-            <button class="modal-close-btn">&times;</button>
-            <h3>Confirm Purchase</h3>
-            <p id="purchase-modal-text">Are you sure you want to buy this ticket?</p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                 <button id="cancel-purchase-btn" class="btn" style="background: var(--error-color);">Cancel</button>
-                 <button id="confirm-purchase-btn" class="btn">Confirm</button>
-            </div>
+             <div class="modal-header"><h3>Transaction History</h3><button class="modal-close-btn">&times;</button></div>
+             <div id="history-list"></div>
+        </div>
+    </div>
+
+    <div id="country-modal" class="modal-overlay">
+        <div class="modal-content">
+             <div class="modal-header"><h3>Select Your Currency</h3><button class="modal-close-btn">&times;</button></div>
+             <div id="country-list" class="country-list"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, update, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-database.js";
+        import { getDatabase, ref, onValue, get, set, update, increment, serverTimestamp, push, child } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-database.js";
 
-        // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyCrWhN-Zo4KUEWwbSOqpy4pHRB8Lr8M6kQ",
             authDomain: "earn-view-cf5b6.firebaseapp.com",
@@ -174,226 +193,259 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // --- Global State ---
-        let tg = null, currentUserId = null, appSettings = {}, currentUserData = {};
-        const COIN_ICON_URL = "https://i.ibb.co/Qjjn0jt4/1000105515.jpg";
+        let tg = null, currentUserId = null, currentUserData = {}, appSettings = {};
+        let selectedCurrency = localStorage.getItem('selectedCurrency') || 'BDT';
 
-        // --- DOM Elements ---
+        const WALLET_CONFIG = [
+            { id: 'main', name: '🟢 Main Balance', transferrable: false }, { id: 'deposit', name: '🟡 Deposit Balance', transferrable: true },
+            { id: 'transfer', name: '🟣 Withdraw Balance', transferrable: false }, { id: 'bonus', name: '🔵 Bonus Balance', transferrable: true },
+            { id: 'ads', name: '🟢 Ads Balance', transferrable: true }, { id: 'microjob', name: '🟣 Microjob Balance', transferrable: true },
+            { id: 'lotteryWinnings', name: '🔵 Lottery Balance', transferrable: true }, { id: 'referral', name: '🟢 Referral Balance', transferrable: true },
+        ];
+        
         const dom = {
-            themeSwitcher: document.getElementById('theme-switcher'),
-            lotteryList: document.getElementById('lottery-list'),
-            purchaseModal: document.getElementById('purchase-modal'),
-            purchaseModalText: document.getElementById('purchase-modal-text'),
-            confirmPurchaseBtn: document.getElementById('confirm-purchase-btn'),
-            cancelPurchaseBtn: document.getElementById('cancel-purchase-btn'),
-            modalCloseBtn: document.querySelector('#purchase-modal .modal-close-btn'),
+            modals: document.querySelectorAll('.modal-overlay'),
+            transferModal: document.getElementById('transfer-to-main-modal'), p2pModal: document.getElementById('p2p-transfer-modal'),
+            historyModal: document.getElementById('history-modal'), countryModal: document.getElementById('country-modal'),
+            mainBalanceValue: document.getElementById('main-balance-value'), currencyValue: document.getElementById('currency-value'),
+            exchangeRate: document.getElementById('exchange-rate'), walletList: document.getElementById('wallet-list'),
+            recipientInfo: document.getElementById('recipient-info'), p2pAmountGroup: document.getElementById('p2p-amount-group'),
+            p2pSubmitBtn: document.getElementById('p2p-submit-btn'),
         };
 
-        // --- Initialization ---
         function init() {
+            applyTheme(localStorage.getItem('theme') || 'dark');
+            attachEventListeners();
+            
             try { tg = window.Telegram.WebApp; tg.expand(); } catch (e) { console.warn("Running in guest mode."); }
             
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                initializeUser(tg.initDataUnsafe.user);
-            } else {
-                initializeGuest();
-            }
-            
-            fetchAppSettings();
-            fetchLotteries();
-            attachEventListeners();
-            applyTheme(localStorage.getItem('theme') || 'dark');
-        }
-        
-        // --- Data Fetching ---
-        async function fetchAppSettings() {
-            const settingsSnap = await get(ref(db, 'appSettings/lotteryPage'));
-            if (!settingsSnap.exists()) return;
-            appSettings = settingsSnap.val();
-
-            if (appSettings.description) {
-                document.getElementById('lottery-description').textContent = appSettings.description;
-            }
-            if (appSettings.backgroundImageUrl) {
-                document.body.style.backgroundImage = `url('${appSettings.backgroundImageUrl}')`;
-            }
-        }
-        
-        async function fetchLotteries() {
-            const lotteriesSnap = await get(ref(db, 'lotteries'));
-            dom.lotteryList.innerHTML = ''; // Clear existing list
-            if (lotteriesSnap.exists()) {
-                const lotteries = lotteriesSnap.val();
-                for (const lotteryId in lotteries) {
-                    if (lotteries[lotteryId].status === 'active') {
-                        renderLotteryCard(lotteries[lotteryId], lotteryId);
-                    }
+            fetchAppSettings().then(() => {
+                if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    initializeUser(tg.initDataUnsafe.user);
+                } else {
+                    initializeGuest();
                 }
-            } else {
-                dom.lotteryList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No active lotteries at the moment. Check back soon!</p>';
+            });
+        }
+        
+        async function fetchAppSettings() {
+            const snap = await get(ref(db, 'appSettings/walletPage'));
+            if (snap.exists()) {
+                appSettings = snap.val();
+                populateCountrySelector();
             }
         }
-
-        // --- User Handling ---
+        
         function initializeUser(tgUser) {
             currentUserId = tgUser.id.toString();
             document.getElementById('user-name').textContent = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
-            document.getElementById('user-id').textContent = `ID: ${currentUserId}`;
 
-            // Listen for user data changes
             onValue(ref(db, `users/${currentUserId}`), (snap) => {
                 if(snap.exists()) {
                     currentUserData = snap.val();
-                    updateUI(currentUserData);
                 } else {
-                    // Create new user with deposit and lottery wallets
-                    const newUser = {
-                        name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim(),
-                        registeredAt: serverTimestamp(),
-                        wallets: { main: 0, deposit: 0, lotteryWinnings: 0 }
-                    };
-                    update(ref(db, `users/${currentUserId}`), newUser);
+                    const newUser = { name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim(), registeredAt: serverTimestamp(), wallets: {} };
+                    WALLET_CONFIG.forEach(w => newUser.wallets[w.id] = 0);
+                    set(ref(db, `users/${currentUserId}`), newUser);
+                    currentUserData = newUser;
                 }
+                updateUI();
             });
         }
-
+        
         function initializeGuest() {
-            document.getElementById('user-name').textContent = "Guest User";
-            dom.lotteryList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Please open in Telegram to participate.</p>';
+            document.getElementById('user-name').textContent = 'Guest User';
+            const guestWallets = {};
+            WALLET_CONFIG.forEach(w => guestWallets[w.id] = 0);
+            currentUserData = { wallets: guestWallets };
+            updateUI();
         }
 
-        // --- UI Rendering ---
-        function updateUI(userData) {
-            const wallets = userData.wallets || {};
-            document.getElementById('profile-pic').src = userData.profilePic || 'https://i.ibb.co/L0xJ182/placeholder.png';
-            document.getElementById('lottery-winnings-balance').textContent = (wallets.lotteryWinnings || 0).toLocaleString();
-            document.getElementById('total-lotteries-purchased').textContent = (userData.lotteriesPurchased || 0).toLocaleString();
+        function updateUI() {
+            if (!currentUserData.wallets) return;
+            const wallets = currentUserData.wallets;
+            const currencyInfo = appSettings.currencies ? (appSettings.currencies[selectedCurrency] || { rate: 1, flag: '🏳️' }) : { rate: 1, flag: '🏳️' };
+            const rate = currencyInfo.rate || 1;
+            
+            const mainBalance = wallets.main || 0;
+            dom.mainBalanceValue.textContent = mainBalance.toLocaleString("en-US");
+            dom.currencyValue.textContent = `≈ ${(mainBalance * rate).toLocaleString("en-US", {minimumFractionDigits: 2})} ${selectedCurrency}`;
+            dom.exchangeRate.textContent = `1 Coin = ${rate.toLocaleString("en-US")} ${selectedCurrency}`;
+
+            dom.walletList.innerHTML = '';
+            WALLET_CONFIG.forEach(wallet => {
+                const balance = wallets[wallet.id] || 0;
+                dom.walletList.innerHTML += `
+                    <li class="wallet-item">
+                        <div class="wallet-item-info"><div class="wallet-item-name">${wallet.name}</div></div>
+                        <div class="wallet-item-balances">
+                            <div class="wallet-item-coins">${balance.toLocaleString("en-US")}</div>
+                            <div class="wallet-item-currency">≈ ${(balance * rate).toLocaleString("en-US", {minimumFractionDigits: 2})} ${selectedCurrency}</div>
+                        </div>
+                    </li>`;
+            });
         }
 
-        function renderLotteryCard(lottery, lotteryId) {
-            const card = document.createElement('div');
-            card.className = 'lottery-card';
-            
-            const participants = lottery.participants ? Object.keys(lottery.participants).length : 0;
-            const isPurchased = lottery.participants && lottery.participants[currentUserId];
-            const isFull = participants >= lottery.maxParticipants;
-            
-            let prizesHTML = '';
-            if (lottery.prizes) {
-                lottery.prizes.slice(0, 3).forEach((prize, index) => {
-                    const rankIcons = ['fa-trophy', 'fa-medal', 'fa-award'];
-                    prizesHTML += `
-                        <li class="prize-item">
-                            <i class="fas ${rankIcons[index]} rank-icon"></i>
-                            <div class="prize-info">
-                                <div class="reward">${prize.reward.toLocaleString()} <img src="${COIN_ICON_URL}" class="coin-icon"></div>
-                                ${prize.gift ? `<div class="gift">${prize.gift}</div>` : ''}
-                            </div>
-                        </li>`;
-                });
+        function populateCountrySelector() {
+            const countryList = document.getElementById('country-list');
+            countryList.innerHTML = '';
+            if(!appSettings.currencies) return;
+            for (const currencyCode in appSettings.currencies) {
+                const currency = appSettings.currencies[currencyCode];
+                const btn = document.createElement('button');
+                btn.innerHTML = `<span>${currency.flag}</span> ${currency.name} (${currencyCode})`;
+                btn.onclick = () => {
+                    selectedCurrency = currencyCode;
+                    localStorage.setItem('selectedCurrency', currencyCode);
+                    updateUI();
+                    dom.countryModal.classList.remove('show');
+                };
+                countryList.appendChild(btn);
             }
-
-            card.innerHTML = `
-                <div class="lottery-header">
-                    <i class="fas fa-ticket-alt lottery-icon"></i>
-                    <span class="lottery-name">${lottery.name}</span>
-                </div>
-                <div class="lottery-body">
-                    <div class="lottery-details">
-                        <div class="detail-item">
-                            <div class="label">Ticket Price</div>
-                            <div class="value">${lottery.price.toLocaleString()} <img src="${COIN_ICON_URL}" class="coin-icon"></div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="label">Participants</div>
-                            <div class="value">${participants} / ${lottery.maxParticipants}</div>
-                        </div>
-                    </div>
-                    <ul class="prize-list">${prizesHTML}</ul>
-                    <button class="btn purchase-btn" 
-                        data-lottery-id="${lotteryId}" 
-                        data-price="${lottery.price}"
-                        data-name="${lottery.name}"
-                        data-payment-source="${lottery.paymentSource || 'main'}"
-                        ${isPurchased || isFull ? 'disabled' : ''}>
-                        ${isPurchased ? 'Already Purchased' : (isFull ? 'Lottery Full' : 'Purchase Now')}
-                    </button>
-                </div>`;
-            
-            dom.lotteryList.appendChild(card);
         }
 
-        // --- Event Handling ---
         function attachEventListeners() {
-            dom.themeSwitcher.addEventListener('click', () => applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light'));
+            dom.modals.forEach(modal => {
+                modal.querySelector('.modal-close-btn').addEventListener('click', () => modal.classList.remove('show'));
+            });
             
-            dom.lotteryList.addEventListener('click', e => {
-                if (e.target.classList.contains('purchase-btn')) {
-                    handlePurchaseClick(e.target.dataset);
-                }
+            document.getElementById('theme-switcher').addEventListener('click', () => {
+                const newTheme = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+                applyTheme(newTheme);
             });
 
-            dom.modalCloseBtn.addEventListener('click', closePurchaseModal);
-            dom.cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
-        }
-
-        function handlePurchaseClick(dataset) {
-            if (!currentUserId) {
-                alert("Please open in Telegram to purchase.");
-                return;
-            }
-            const { lotteryId, price, name, paymentSource } = dataset;
-            const sourceText = paymentSource === 'deposit' ? 'Deposit Balance' : 'Main Balance';
+            document.getElementById('settings-btn').addEventListener('click', () => dom.countryModal.classList.add('show'));
+            document.getElementById('transfer-btn').addEventListener('click', openTransferToMainModal);
+            document.getElementById('withdraw-btn').addEventListener('click', () => dom.p2pModal.classList.add('show'));
+            document.getElementById('history-btn').addEventListener('click', showHistoryModal);
             
-            dom.purchaseModalText.innerHTML = `Are you sure you want to buy a ticket for <strong>${name}</strong> for <strong>${price} ${paymentSource}</strong>? <br><small>This amount will be deducted from your ${sourceText}.</small>`;
-            dom.confirmPurchaseBtn.onclick = () => confirmPurchase(lotteryId, parseInt(price), paymentSource);
-            dom.purchaseModal.classList.add('show');
+            document.getElementById('transfer-to-main-form').addEventListener('submit', handleTransferToMain);
+            document.getElementById('find-user-btn').addEventListener('click', findRecipientUser);
+            document.getElementById('p2p-transfer-form').addEventListener('submit', handleP2PTransfer);
         }
         
-        function closePurchaseModal() {
-            dom.purchaseModal.classList.remove('show');
+        function applyTheme(theme) {
+            document.body.classList.toggle('light-mode', theme === 'light');
+            localStorage.setItem('theme', theme);
         }
 
-        async function confirmPurchase(lotteryId, price, paymentSource) {
-            const userWallet = currentUserData.wallets || {};
-            const balance = userWallet[paymentSource] || 0;
-
-            if (balance < price) {
-                alert(`Insufficient ${paymentSource === 'deposit' ? 'Deposit' : 'Main'} Balance.`);
-                closePurchaseModal();
-                return;
+        function checkGuest(action = "perform this action") {
+            if (!currentUserId) {
+                alert(`Please open in Telegram to ${action}.`);
+                return true;
             }
+            return false;
+        }
 
-            dom.confirmPurchaseBtn.disabled = true;
-            dom.confirmPurchaseBtn.textContent = 'Processing...';
+        function openTransferToMainModal() {
+            if (checkGuest("transfer funds")) return;
+            const select = document.getElementById('source-wallet');
+            select.innerHTML = '';
+            let transferrableWalletsExist = false;
+            WALLET_CONFIG.forEach(wallet => {
+                const balance = currentUserData.wallets[wallet.id] || 0;
+                if (wallet.transferrable && balance > 0) {
+                    select.innerHTML += `<option value="${wallet.id}">${wallet.name} (${balance.toLocaleString("en-US")})</option>`;
+                    transferrableWalletsExist = true;
+                }
+            });
+            if(!transferrableWalletsExist){
+                return alert("You have no funds in transferrable wallets.");
+            }
+            dom.transferModal.classList.add('show');
+        }
 
-            try {
-                const updates = {};
-                updates[`/users/${currentUserId}/wallets/${paymentSource}`] = balance - price;
-                updates[`/users/${currentUserId}/lotteriesPurchased`] = increment(1);
-                updates[`/lotteries/${lotteryId}/participants/${currentUserId}`] = serverTimestamp();
+        async function handleTransferToMain(e) {
+            e.preventDefault();
+            if (checkGuest("transfer funds")) return;
+            const sourceWallet = document.getElementById('source-wallet').value;
+            const amount = Number(document.getElementById('transfer-amount').value);
+            const minTransfer = appSettings.minTransferLimits?.[sourceWallet] || 0;
 
-                await update(ref(db), updates);
-                
-                alert("Purchase successful! Good luck!");
-                fetchLotteries(); // Refresh the list to update button state
-            } catch (error) {
-                console.error("Purchase failed: ", error);
-                alert("An error occurred. Please try again.");
-            } finally {
-                closePurchaseModal();
-                dom.confirmPurchaseBtn.disabled = false;
-                dom.confirmPurchaseBtn.textContent = 'Confirm';
+            if (!sourceWallet || amount <= 0) return alert("Invalid input.");
+            if (amount < minTransfer) return alert(`Minimum transfer from this wallet is ${minTransfer}.`);
+            if ((currentUserData.wallets[sourceWallet] || 0) < amount) return alert("Insufficient balance.");
+
+            const updates = {};
+            updates[`/users/${currentUserId}/wallets/${sourceWallet}`] = increment(-amount);
+            updates[`/users/${currentUserId}/wallets/main`] = increment(amount);
+            const historyRef = ref(db, `users/${currentUserId}/history`);
+            const newHistory = push(historyRef);
+            updates[`/users/${currentUserId}/history/${newHistory.key}`] = {
+                type: 'Internal Transfer', amount, from: sourceWallet, to: 'main', timestamp: serverTimestamp()
+            };
+            await update(ref(db), updates);
+            alert("Transfer successful!");
+            dom.transferModal.classList.remove('show');
+            e.target.reset();
+        }
+
+        async function findRecipientUser() {
+            if (checkGuest("find users")) return;
+            const recipientId = document.getElementById('recipient-id').value.trim();
+            if(!recipientId || recipientId === currentUserId) return alert("Invalid or own ID.");
+            
+            const snap = await get(ref(db, `users/${recipientId}`));
+            if(snap.exists()){
+                const recipient = snap.val();
+                document.getElementById('recipient-pic').src = recipient.profilePic || 'https://i.ibb.co/L0xJ182/placeholder.png';
+                document.getElementById('recipient-name').textContent = recipient.name;
+                dom.recipientInfo.style.display = 'flex';
+                dom.p2pAmountGroup.style.display = 'block';
+                dom.p2pSubmitBtn.disabled = false;
+            } else {
+                alert("User not found.");
+                dom.recipientInfo.style.display = 'none';
+                dom.p2pAmountGroup.style.display = 'none';
+                dom.p2pSubmitBtn.disabled = true;
             }
         }
 
-        // --- Utility Functions ---
-        function applyTheme(theme) { 
-            document.body.classList.toggle('light-mode', theme === 'light'); 
-            localStorage.setItem('theme', theme); 
+        async function handleP2PTransfer(e) {
+            e.preventDefault();
+            if (checkGuest("send funds")) return;
+            const recipientId = document.getElementById('recipient-id').value.trim();
+            const amount = Number(document.getElementById('p2p-amount').value);
+            const minP2P = appSettings.minP2PTransfer || 1;
+
+            if (amount < minP2P) return alert(`Minimum transfer amount is ${minP2P}.`);
+            if ((currentUserData.wallets.main || 0) < amount) return alert("Insufficient main balance.");
+
+            const updates = {};
+            updates[`/users/${currentUserId}/wallets/main`] = increment(-amount);
+            updates[`/users/${recipientId}/wallets/main`] = increment(amount);
+
+            const senderHistoryKey = push(child(ref(db), `users/${currentUserId}/history`)).key;
+            const receiverHistoryKey = push(child(ref(db), `users/${recipientId}/history`)).key;
+            updates[`/users/${currentUserId}/history/${senderHistoryKey}`] = { type: 'Sent', amount, to: recipientId, timestamp: serverTimestamp() };
+            updates[`/users/${recipientId}/history/${receiverHistoryKey}`] = { type: 'Received', amount, from: currentUserId, timestamp: serverTimestamp() };
+
+            await update(ref(db), updates);
+            alert("Transfer successful!");
+            dom.p2pModal.classList.remove('show');
+            document.getElementById('p2p-transfer-form').reset();
+            dom.recipientInfo.style.display = 'none';
+            dom.p2pAmountGroup.style.display = 'none';
+            dom.p2pSubmitBtn.disabled = true;
         }
         
-        // --- Start the App ---
+        async function showHistoryModal() {
+            if (checkGuest("view history")) return;
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = 'Loading...';
+            const snap = await get(ref(db, `users/${currentUserId}/history`));
+            if(snap.exists()) {
+                historyList.innerHTML = '';
+                const history = Object.values(snap.val()).sort((a,b) => b.timestamp - a.timestamp);
+                history.forEach(item => {
+                    historyList.innerHTML += `<div class="history-item"><strong>${item.type}</strong>: ${item.amount.toLocaleString("en-US")} coins <br><small>${new Date(item.timestamp).toLocaleString()}</small></div>`;
+                });
+            } else {
+                historyList.innerHTML = 'No transaction history found.';
+            }
+            dom.historyModal.classList.add('show');
+        }
+
         init();
     </script>
 </body>

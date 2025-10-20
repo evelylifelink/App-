@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mining Zone</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <style>
+        :root {
+            --bg-color: #111111; --card-bg-color: rgba(30, 30, 30, 0.85); --text-primary: #f5f5f5;
+            --text-secondary: #aaaaaa; --accent-primary: #FFA500;
+            --accent-gradient: linear-gradient(135deg, #FFB347, #FF6347);
+            --border-color: rgba(255, 255, 255, 0.1); --shadow-color: rgba(0, 0, 0, 0.3);
+            --success-color: #4CAF50; --error-color: #f44336;
+        }
+        body.light-mode {
+            --bg-color: #f0f2f5; --card-bg-color: rgba(255, 255, 255, 0.9); --text-primary: #111111;
+            --text-secondary: #666666; --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif; background-color: var(--bg-color);
+            color: var(--text-primary); overflow-x: hidden;
+            background-image: url('https://i.ibb.co/23cWvy1p/1000105864.jpg');
+            background-size: cover; background-position: center center; background-attachment: fixed;
+        }
+        
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px;
+            background-color: var(--card-bg-color); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100;
+        }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .profile-pic { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent-primary); object-fit: cover; }
+        .user-info .name { font-weight: 600; }
+        .user-info .id { font-size: 12px; color: var(--text-secondary); }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .theme-switcher { width: 28px; height: 28px; cursor: pointer; color: var(--text-secondary); }
+        .theme-switcher .icon { display: none; }
+        body.light-mode .theme-switcher .moon-icon { display: block; }
+        body:not(.light-mode) .theme-switcher .sun-icon { display: block; }
+
+        .app-container { max-width: 500px; margin: 0 auto; padding: 15px; }
+        .card { 
+            background-color: var(--card-bg-color); border-radius: 15px; padding: 20px;
+            margin-bottom: 20px; backdrop-filter: blur(10px); border: 1px solid var(--border-color);
+        }
+        .btn { border: none; border-radius: 10px; background: var(--accent-gradient); color: white; font-size: 16px; font-weight: 600; cursor: pointer; padding: 10px 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { background: #555; cursor: not-allowed; opacity: 0.7; }
+
+        .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .wallet-card { background-color: var(--card-bg-color); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; }
+        .wallet-card .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .wallet-card .label img { width: 22px; height: 22px; border-radius: 50%; } /* Updated for circular coin */
+        .wallet-card .label i { font-size: 18px; color: var(--accent-primary); width: 20px; }
+        .wallet-card .value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        .small-wallets .wallet-card .value { font-size: 18px; }
+
+        .mining-section { text-align: center; padding: 20px; }
+        .mining-coin-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; }
+        .mining-coin-wrapper::before { content: ''; position: absolute; top: -5px; left: -5px; width: 130px; height: 130px; background: conic-gradient(from 180deg at 50% 50%, #FFB347, #FF6347, #FFA500, #FFB347); border-radius: 50%; animation: rotate 4s linear infinite; }
+        @keyframes rotate { to { transform: rotate(360deg); } }
+        .mining-coin { width: 100%; height: 100%; border-radius: 50%; animation: pulse 2s infinite ease-in-out; border: 3px solid var(--bg-color); }
+        @keyframes pulse { 0%, 100% { transform: scale(0.95); } 50% { transform: scale(1.05); } }
+        
+        #mine-now-btn { font-size: 18px; padding: 12px 25px; border-radius: 50px; margin: 15px 0; }
+        .mining-controls { display: flex; justify-content: space-between; align-items: center; max-width: 250px; margin: 0 auto; }
+        .action-btn { background: var(--card-bg-color); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 18px; cursor: pointer; width: 45px; height: 45px; border-radius: 50%; display:flex; align-items:center; justify-content:center; }
+        
+        .referral-box .title { font-weight: 600; margin-bottom: 10px; }
+        .ref-input-group { display: flex; background: var(--bg-color); border-radius: 8px; padding: 5px; margin-bottom: 10px; }
+        .ref-input-group input { flex-grow: 1; background: transparent; border: none; color: var(--text-primary); padding: 8px; font-size: 14px; }
+        .ref-input-group input:focus { outline: none; }
+        .copy-btn { padding: 8px 15px; font-size: 14px; background: var(--accent-primary); border: none; border-radius: 6px; color: white; cursor: pointer; }
+        
+        .video-thumbnail { cursor: pointer; position: relative; border-radius: 12px; overflow: hidden; }
+        .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; color: rgba(255,255,255,0.8); }
+        .footer-section p { color: var(--text-secondary); line-height: 1.7; margin-top: 10px; }
+        .footer-links { margin: 20px 0; }
+        .footer-links a { color: var(--accent-primary); text-decoration: none; margin: 0 10px; }
+        .social-icons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .social-icons a { color: var(--text-secondary); font-size: 22px; text-decoration: none; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1001; display: none; align-items: center; justify-content: center; padding: 15px; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background-color: var(--card-bg-color); padding: 25px; border-radius: 15px; width: 100%; max-width: 450px; position: relative; text-align: center; }
+        .modal-close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 2rem; color: var(--text-secondary); cursor: pointer; }
+        #video-modal .modal-content { padding: 10px; aspect-ratio: 16 / 9; }
+        #video-iframe { width: 100%; height: 100%; border: none; border-radius: 10px; }
+        #welcome-notice-modal img, #task-modal img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; }
+        #welcome-notice-modal h2, #task-modal h2 { color: var(--accent-primary); margin-bottom: 10px; }
+        #welcome-notice-modal p, #task-modal p { color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; }
+        #welcome-join-buttons { display: flex; flex-direction: column; gap: 10px; }
+        #welcome-close-btn { margin-top: 15px; background: transparent; border: 1px solid var(--error-color); color: var(--error-color); }
+        #task-timer { font-size: 2rem; font-weight: bold; color: var(--accent-primary); margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="user-profile">
+            <img id="profile-pic" src="https://i.ibb.co/L0xJ182/placeholder.png" alt="Profile" class="profile-pic">
+            <div class="user-info">
+                <div id="user-name" class="name">Guest User</div>
+                <div id="user-id" class="id">ID: Not Found</div>
+            </div>
+        </div>
+        <div class="header-right"><div id="theme-switcher" class="theme-switcher"><svg class="sun-icon icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 010 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.591a.75.75 0 011.06 0zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.894 17.894a.75.75 0 01-1.06 0l-1.59-1.591a.75.75 0 111.06-1.06l1.591 1.59a.75.75 0 010 1.061zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM6.106 17.894a.75.75 0 010-1.06l1.591-1.59a.75.75 0 111.06 1.06l-1.59 1.591a.75.75 0 01-1.06 0zM3.75 12a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM6.106 6.106a.75.75 0 011.06 0l1.59 1.591a.75.75 0 11-1.06 1.06L6.106 7.167a.75.75 0 010-1.06z"></path></svg><svg class="moon-icon icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-3.833 2.067-7.17 5.168-8.972a.75.75 0 01.818.162z" clip-rule="evenodd"></path></svg></div></div>
+    </header>
+    
+    <div class="app-container">
+        <main>
+            <div class="wallet-grid">
+                <!-- Updated Coin Image -->
+                <div class="wallet-card"><div class="label"><img src="https://i.ibb.co/Qjjn0jt4/1000105515.jpg"><span>Today's Mining</span></div><div id="today-mining-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><img src="https://i.ibb.co/Qjjn0jt4/1000105515.jpg"><span>Total Mining</span></div><div id="total-mining-balance" class="value">0</div></div>
+            </div>
+
+            <div class="card mining-section">
+                <!-- Updated Coin Image -->
+                <div class="mining-coin-wrapper"><img src="https://i.ibb.co/Qjjn0jt4/1000105515.jpg" alt="Mining Coin" class="mining-coin"></div>
+                <!-- Button text will be updated by script -->
+                <button id="mine-now-btn" class="btn">Mine Now</button>
+                <div class="mining-controls">
+                    <button id="instructions-btn" class="action-btn"><i class="fas fa-question-circle"></i></button>
+                    <button id="auto-mine-btn" class="action-btn" style="display: none;"><i class="fas fa-robot"></i></button>
+                </div>
+            </div>
+            
+            <div class="card youtube-section">
+                 <h3 style="text-align: center; margin-bottom: 15px;">Tutorial Video</h3>
+                 <div id="video-thumbnail" class="video-thumbnail">
+                    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" alt="Video Thumbnail" style="width: 100%; border-radius: 12px;">
+                    <i class="fas fa-play play-icon"></i>
+                </div>
+            </div>
+
+            <div class="card referral-box">
+                <div class="title">Your Referral Code</div>
+                <div class="ref-input-group"><input type="text" id="ref-code-input" readonly value="..."><button class="copy-btn" data-target="ref-code-input">Copy</button></div>
+                <div class="title">Your Referral Link</div>
+                <div class="ref-input-group"><input type="text" id="ref-link-input" readonly value="..."><button class="copy-btn" data-target="ref-link-input">Copy</button></div>
+            </div>
+
+            <h3 style="margin-bottom: 15px; text-align: center; text-shadow: 0 1px 3px #000;">All Wallets</h3>
+            <div class="wallet-grid small-wallets">
+                <div class="wallet-card"><div class="label"><i class="fas fa-calendar-day"></i><span>Today Earning</span></div><div id="today-earning-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-wallet"></i><span>Main Balance</span></div><div id="main-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-list-check"></i><span>Task Earning</span></div><div id="task-earning-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-rectangle-ad"></i><span>Ads Earning</span></div><div id="ads-earning-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-gift"></i><span>Bonus Earning</span></div><div id="bonus-earning-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-ticket"></i><span>Lottery Earning</span></div><div id="lottery-earning-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-users"></i><span>Referral Balance</span></div><div id="referral-balance" class="value">0</div></div>
+                <div class="wallet-card"><div class="label"><i class="fas fa-paper-plane"></i><span>Total Transfer</span></div><div id="transfer-balance" class="value">0</div></div>
+            </div>
+
+            <footer class="card footer-section">
+                <h3>About Our Company</h3>
+                <p>We are dedicated to providing the best service and experience for our users. Join our community and start earning today!</p>
+                <div class="footer-links"><a id="privacy-policy-link" href="#">Privacy Policy</a><a id="terms-link" href="#">Terms & Conditions</a></div>
+                <div id="social-icons" class="social-icons"></div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="instructions-modal" class="modal-overlay"><div class="modal-content"><button class="modal-close-btn">&times;</button><h3 style="text-align: center; margin-bottom: 15px; color: var(--accent-primary);">How To Mine</h3><div id="instructions-content"></div></div></div>
+    <div id="video-modal" class="modal-overlay"><div class="modal-content"><button class="modal-close-btn">&times;</button><iframe id="video-iframe" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div></div>
+    <div id="welcome-notice-modal" class="modal-overlay"><div class="modal-content"><img id="welcome-image" src=""><h2 id="welcome-title"></h2><p id="welcome-description"></p><div id="welcome-join-buttons"></div><button id="welcome-close-btn" class="btn">I Understand</button></div></div>
+    <div id="task-modal" class="modal-overlay"><div class="modal-content"><h2 id="task-title">Complete Task</h2><p id="task-description">Please wait...</p><div id="task-timer">0</div><a id="task-link-btn" href="#" target="_blank" class="btn">Go to Task</a><button id="task-claim-btn" class="btn" disabled>Claim Reward</button></div></div>
+    <div id="privacy-modal" class="modal-overlay"><div class="modal-content"><button class="modal-close-btn">&times;</button><h3 style="text-align: center; margin-bottom: 15px; color: var(--accent-primary);">Privacy Policy</h3><div id="privacy-content"></div></div></div>
+    <div id="terms-modal" class="modal-overlay"><div class="modal-content"><button class="modal-close-btn">&times;</button><h3 style="text-align: center; margin-bottom: 15px; color: var(--accent-primary);">Terms & Conditions</h3><div id="terms-content"></div></div></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+        import { getDatabase, ref, onValue, get, update, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCrWhN-Zo4KUEWwbSOqpy4pHRB8Lr8M6kQ",
+            authDomain: "earn-view-cf5b6.firebaseapp.com",
+            databaseURL: "https://earn-view-cf5b6-default-rtdb.firebaseio.com",
+            projectId: "earn-view-cf5b6",
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let tg = null, currentUserId = null, miningSettings = {}, miningState = { count: 0, lastMineTimestamp: 0 }, isMining = false;
+        try { tg = window.Telegram.WebApp; tg.expand(); } catch (e) { console.warn("Running in guest mode."); }
+
+        const dom = { // A single object for all DOM elements
+            themeSwitcher: document.getElementById('theme-switcher'), mineNowBtn: document.getElementById('mine-now-btn'),
+            instructionsModal: document.getElementById('instructions-modal'), videoModal: document.getElementById('video-modal'),
+            welcomeModal: document.getElementById('welcome-notice-modal'), taskModal: document.getElementById('task-modal'),
+            privacyModal: document.getElementById('privacy-modal'), termsModal: document.getElementById('terms-modal'),
+        };
+
+        function init() {
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                initializeUser(tg.initDataUnsafe.user);
+            } else {
+                initializeGuest();
+            }
+            fetchAppSettings();
+            attachEventListeners();
+            applyTheme(localStorage.getItem('theme') || 'dark');
+        }
+        
+        async function fetchAppSettings() {
+            const settingsSnap = await get(ref(db, 'appSettings/miningPage'));
+            if (!settingsSnap.exists()) return;
+            const settings = settingsSnap.val();
+            miningSettings = {
+                mineDuration: settings.mineDuration || 10,
+                restDuration: settings.restDuration || 60,
+                minesPerCycle: settings.minesPerCycle || 5,
+                taskUrl: settings.taskUrl || '#',
+                taskWaitSeconds: settings.taskWaitSeconds || 30,
+                reward: settings.reward || 10,
+                autoRobotEnabled: settings.autoRobotEnabled || false,
+                youtubeVideoId: settings.youtubeVideoId || 'dQw4w9WgXcQ',
+                referralBaseUrl: settings.referralBaseUrl || '',
+                privacyPolicy: settings.privacyPolicy || 'Privacy Policy not set.',
+                terms: settings.terms || 'Terms and Conditions not set.',
+                socialLinks: settings.socialLinks || {},
+                welcomeNotice: settings.welcomeNotice || { enabled: false },
+            };
+            
+            // Populate UI with settings
+            document.getElementById('instructions-content').innerHTML = (settings.instructions || "Instructions not available.").replace(/\n/g, '<br>');
+            document.getElementById('privacy-content').innerHTML = miningSettings.privacyPolicy.replace(/\n/g, '<br>');
+            document.getElementById('terms-content').innerHTML = miningSettings.terms.replace(/\n/g, '<br>');
+            if(miningSettings.autoRobotEnabled) document.getElementById('auto-mine-btn').style.display = 'flex';
+            document.getElementById('video-thumbnail').dataset.videoId = miningSettings.youtubeVideoId;
+            document.getElementById('video-thumbnail').querySelector('img').src = `https://img.youtube.com/vi/${miningSettings.youtubeVideoId}/0.jpg`;
+            
+            // Update Mine Now button text
+            dom.mineNowBtn.innerHTML = `Mine Now (+${miningSettings.reward})`;
+
+            const socialContainer = document.getElementById('social-icons');
+            socialContainer.innerHTML = '';
+            for(const [name, data] of Object.entries(miningSettings.socialLinks)){
+                // Use a mapping for Font Awesome icons
+                const iconMap = {
+                    facebook: 'fa-facebook', twitter: 'fa-twitter', instagram: 'fa-instagram',
+                    telegram: 'fa-telegram', youtube: 'fa-youtube', discord: 'fa-discord',
+                    linkedin: 'fa-linkedin', reddit: 'fa-reddit-alien', pinterest: 'fa-pinterest'
+                };
+                if(iconMap[name]) {
+                    socialContainer.innerHTML += `<a href="${data.link}" target="_blank"><i class="fab ${iconMap[name]}"></i></a>`;
+                }
+            }
+
+            if(miningSettings.welcomeNotice.enabled) showWelcomeNotice(miningSettings.welcomeNotice);
+        }
+
+        function showWelcomeNotice(notice) {
+            document.getElementById('welcome-image').src = notice.imageUrl;
+            document.getElementById('welcome-title').textContent = notice.title;
+            document.getElementById('welcome-description').textContent = notice.description;
+            const buttonsContainer = document.getElementById('welcome-join-buttons');
+            buttonsContainer.innerHTML = '';
+            if(notice.joinButtons) {
+                notice.joinButtons.forEach(btnData => {
+                    buttonsContainer.innerHTML += `<a href="${btnData.link}" target="_blank" class="btn">${btnData.text}</a>`;
+                });
+            }
+            const closeBtn = document.getElementById('welcome-close-btn');
+            closeBtn.onclick = () => {
+                if(notice.closeButtonLink) window.open(notice.closeButtonLink, '_blank');
+                dom.welcomeModal.classList.remove('show');
+            };
+            dom.welcomeModal.classList.add('show');
+        }
+
+        async function initializeUser(tgUser) {
+            currentUserId = tgUser.id.toString();
+            document.getElementById('user-name').textContent = `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim();
+            document.getElementById('user-id').textContent = `ID: ${currentUserId}`;
+            document.getElementById('ref-code-input').value = currentUserId;
+            if(miningSettings.referralBaseUrl) document.getElementById('ref-link-input').value = `${miningSettings.referralBaseUrl}?ref=${currentUserId}`;
+
+            onValue(ref(db, `users/${currentUserId}`), (snap) => {
+                if(!snap.exists()) {
+                    // Create a new user if not exists
+                    update(ref(db, `users/${currentUserId}`), {
+                        name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim(),
+                        registeredAt: serverTimestamp(),
+                        wallets: { main: 0, todayMining: 0, totalMining: 0, todayEarning: 0, task: 0, ads: 0, bonus: 0, lottery: 0, referral: 0, transfer: 0 }
+                    });
+                } else {
+                    const userData = snap.val();
+                    document.getElementById('profile-pic').src = userData.profilePic || 'https://i.ibb.co/L0xJ182/placeholder.png';
+                    updateAllBalances(userData.wallets || {});
+                }
+            });
+
+            const stateSnap = await get(ref(db, `miningStats/${currentUserId}`));
+            if(stateSnap.exists()) miningState = stateSnap.val();
+            checkRestPeriod();
+        }
+
+        function initializeGuest() {
+            document.getElementById('user-name').textContent = "Guest User";
+            document.getElementById('user-id').textContent = "Welcome!";
+            dom.mineNowBtn.disabled = true;
+            dom.mineNowBtn.innerHTML = "Please open in Telegram";
+        }
+
+        function updateAllBalances(wallets) {
+            const format = (v) => (v || 0).toLocaleString();
+            document.getElementById('today-mining-balance').textContent = format(wallets.todayMining);
+            document.getElementById('total-mining-balance').textContent = format(wallets.totalMining);
+            document.getElementById('today-earning-balance').textContent = format(wallets.todayEarning);
+            document.getElementById('main-balance').textContent = format(wallets.main);
+            document.getElementById('task-earning-balance').textContent = format(wallets.task);
+            document.getElementById('ads-earning-balance').textContent = format(wallets.ads);
+            document.getElementById('bonus-earning-balance').textContent = format(wallets.bonus);
+            document.getElementById('lottery-earning-balance').textContent = format(wallets.lottery);
+            document.getElementById('referral-balance').textContent = format(wallets.referral);
+            document.getElementById('transfer-balance').textContent = format(wallets.transfer);
+        }
+
+        function checkRestPeriod() {
+            const timeSinceLastMine = Date.now() - miningState.lastMineTimestamp;
+            const restTimeSeconds = miningSettings.restDuration;
+            if (miningState.count >= miningSettings.minesPerCycle && timeSinceLastMine < restTimeSeconds * 1000) {
+                isMining = true; // Block mining
+                dom.mineNowBtn.disabled = true;
+                let timeLeft = Math.ceil((restTimeSeconds * 1000 - timeSinceLastMine) / 1000);
+                const timerInterval = setInterval(() => {
+                    dom.mineNowBtn.textContent = `Rest: ${timeLeft--}s`;
+                    if (timeLeft < 0) {
+                        clearInterval(timerInterval);
+                        isMining = false;
+                        dom.mineNowBtn.innerHTML = `Mine Now (+${miningSettings.reward})`;
+                        dom.mineNowBtn.disabled = false;
+                    }
+                }, 1000);
+            }
+        }
+
+        function handleMine() {
+            if (!currentUserId || isMining) return;
+
+            // Check if it's time for the task
+            if (miningState.count >= miningSettings.minesPerCycle) {
+                showTaskModal();
+                return;
+            }
+
+            isMining = true;
+            dom.mineNowBtn.disabled = true;
+            let timeLeft = miningSettings.mineDuration;
+            const timerInterval = setInterval(() => {
+                dom.mineNowBtn.textContent = `Mining... ${timeLeft--}s`;
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    claimMineReward();
+                }
+            }, 1000);
+        }
+
+        async function claimMineReward(isTaskReward = false) {
+            const updates = {};
+            updates[`/users/${currentUserId}/wallets/todayMining`] = increment(miningSettings.reward);
+            updates[`/users/${currentUserId}/wallets/totalMining`] = increment(miningSettings.reward);
+            updates[`/users/${currentUserId}/wallets/main`] = increment(miningSettings.reward);
+            
+            const newCount = isTaskReward ? 0 : miningState.count + 1;
+            updates[`/miningStats/${currentUserId}`] = {
+                count: newCount,
+                lastMineTimestamp: serverTimestamp()
+            };
+
+            await update(ref(db), updates);
+            miningState.count = newCount;
+            miningState.lastMineTimestamp = Date.now(); // For local check
+            
+            isMining = false;
+            dom.mineNowBtn.disabled = false;
+            dom.mineNowBtn.innerHTML = `Mine Now (+${miningSettings.reward})`;
+
+            if (newCount >= miningSettings.minesPerCycle) {
+                checkRestPeriod(); // Start rest period
+            }
+        }
+
+        function showTaskModal() {
+            dom.taskModal.classList.add('show');
+            document.getElementById('task-title').textContent = "Complete Task";
+            document.getElementById('task-description').textContent = `Please visit the link and wait for ${miningSettings.taskWaitSeconds} seconds to claim your reward.`;
+            document.getElementById('task-link-btn').href = miningSettings.taskUrl;
+            const claimBtn = document.getElementById('task-claim-btn');
+            claimBtn.disabled = true;
+
+            let timeLeft = miningSettings.taskWaitSeconds;
+            const timerEl = document.getElementById('task-timer');
+            timerEl.textContent = timeLeft;
+
+            const taskInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(taskInterval);
+                    timerEl.textContent = "✅";
+                    claimBtn.disabled = false;
+                }
+            }, 1000);
+
+            claimBtn.onclick = () => {
+                claimMineReward(true);
+                dom.taskModal.classList.remove('show');
+            };
+        }
+
+        function attachEventListeners() {
+            dom.mineNowBtn.addEventListener('click', handleMine);
+            document.getElementById('instructions-btn').addEventListener('click', () => dom.instructionsModal.classList.add('show'));
+            dom.instructionsModal.querySelector('.modal-close-btn').addEventListener('click', () => dom.instructionsModal.classList.remove('show'));
+            
+            document.getElementById('video-thumbnail').addEventListener('click', (e) => {
+                const videoId = e.currentTarget.dataset.videoId;
+                if (videoId) {
+                    document.getElementById('video-iframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                    dom.videoModal.classList.add('show');
+                }
+            });
+            dom.videoModal.querySelector('.modal-close-btn').addEventListener('click', () => {
+                document.getElementById('video-iframe').src = '';
+                dom.videoModal.classList.remove('show');
+            });
+
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const input = document.getElementById(e.currentTarget.dataset.target);
+                    navigator.clipboard.writeText(input.value).then(() => alert("Copied!"));
+                });
+            });
+            
+            document.getElementById('privacy-policy-link').addEventListener('click', (e) => { e.preventDefault(); dom.privacyModal.classList.add('show'); });
+            dom.privacyModal.querySelector('.modal-close-btn').addEventListener('click', () => dom.privacyModal.classList.remove('show'));
+            
+            document.getElementById('terms-link').addEventListener('click', (e) => { e.preventDefault(); dom.termsModal.classList.add('show'); });
+            dom.termsModal.querySelector('.modal-close-btn').addEventListener('click', () => dom.termsModal.classList.remove('show'));
+
+            dom.themeSwitcher.addEventListener('click', () => applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light'));
+        }
+
+        function applyTheme(theme) { 
+            document.body.classList.toggle('light-mode', theme === 'light'); 
+            localStorage.setItem('theme', theme); 
+        }
+        
+        init();
+    </script>
+</body>
+</html>
